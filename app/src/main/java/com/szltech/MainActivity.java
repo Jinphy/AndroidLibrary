@@ -32,7 +32,7 @@ public class MainActivity extends RxAppCompatActivity{
                     if (granted) {
                         HttpUtils.common(this)
                                 .param(Config.Key.fundCode, "23")
-                                .param(Config.Key.queryType, 3)
+                                .param(Config.Key.queryType, 1)
                                 .showProgress()
                                 .client(HttpService::marketQueryForChart)
                                 .onResultYes(LogUtils::e)
@@ -42,6 +42,5 @@ public class MainActivity extends RxAppCompatActivity{
                                 .execute();
                     }
                 });
-
     }
 }

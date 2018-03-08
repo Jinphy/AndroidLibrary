@@ -291,7 +291,7 @@ class Params extends HashMap<String, String> {
         // 加密
         for (Entry<String, String> entry : entrySet()) {
             if (needEncryptAES(entry.getKey())) {
-                entry.setValue(EncryptUtils.aesEncrypt(entry.getValue(), AES_KEY));
+                entry.setValue(EncryptUtils.aesEncrypt(entry.getValue()));
             }
         }
     }

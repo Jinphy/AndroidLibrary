@@ -165,9 +165,9 @@ abstract class BaseApi<T> implements ApiInterface<T>, ApiCallback<T> {
             Context context = this.context.get();
             // 获取系统加密秘钥
             HttpUtils.common((RxFragmentActivity) context, SysKey.class)
-                    .param(HttpUtils.Key.ACCESS_TOKEN, accessToken)
-                    .param(HttpUtils.Key.ID_NO, idNo)
-                    .param(HttpUtils.Key.ID_TYPE, idType)
+                    .param(Config.Key.accessToken, accessToken)
+                    .param(Config.Key.idNo, idNo)
+                    .param(Config.Key.idType, idType)
                     .showProgress()
                     .cancellable()
                     .client(HttpService::getSysKey)

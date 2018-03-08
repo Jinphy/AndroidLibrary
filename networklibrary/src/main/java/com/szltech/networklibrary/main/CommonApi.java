@@ -118,7 +118,7 @@ class CommonApi<T> extends BaseApi<T> {
         } else {
             it = GsonUtils.toBean(result.toString(), BaseResultEntity.class);
         }
-        if (it.ok()) {
+        if (it!=null && it.ok()) {
             if (this.onResultYes != null) {
                 this.onResultYes.call(result);
             }

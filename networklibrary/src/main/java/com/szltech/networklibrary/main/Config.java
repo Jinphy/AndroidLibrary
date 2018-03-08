@@ -74,6 +74,12 @@ public interface Config {
         String fundCode = "fundcode";
 
         String queryType = "querytype";
+
+        String accessToken = "accesstoken";
+
+        String idNo = "idno";
+
+        String idType = "idtype";
     }
 
 

@@ -32,7 +32,10 @@ public class EncryptUtils {
      * Created by Jinphy, on 2018/3/8, at 11:12
      */
     public static String aesEncrypt(String content) {
-        return aesEncrypt(content, AES_KEY);
+
+
+        return encryptHSFund(content);
+//        return aesEncrypt(content, AES_KEY);
     }
 
     /**
@@ -64,7 +67,7 @@ public class EncryptUtils {
         } catch (InvalidAlgorithmParameterException e) {
             e.printStackTrace();
         }
-        return null;
+        return "";
     }
 
     /**
@@ -72,7 +75,8 @@ public class EncryptUtils {
      * Created by Jinphy, on 2018/3/8, at 11:11
      */
     public static String aesDecrypt(String content) {
-        return aesDecrypt(content, AES_KEY);
+        return decryptHSFund(content);
+//        return aesDecrypt(content, AES_KEY);
     }
 
 
@@ -105,7 +109,7 @@ public class EncryptUtils {
         } catch (BadPaddingException e) {
             e.printStackTrace();
         }
-        return null;
+        return "";
     }
 
     /**
@@ -139,5 +143,114 @@ public class EncryptUtils {
         return "";
     }
 
+
+    /**
+     * DESC: 华商基金的加密算法
+     * Created by Jinphy, on 2018/3/8, at 16:50
+     */
+    public static String encryptHSFund(String content) {
+        int[] iS = new int[256];
+        byte[] iK = new byte[256];
+
+        for (int i = 0; i < 256; i++)
+            iS[i] = i;
+
+        int j = 1;
+
+        for (short i = 0; i < 256; i++) {
+            iK[i] = (byte) AES_KEY.charAt((i % AES_KEY.length()));
+        }
+
+        j = 0;
+
+        for (int i = 0; i < 255; i++) {
+            j = (j + iS[i] + iK[i]) % 256;
+            int temp = iS[i];
+            iS[i] = iS[j];
+            iS[j] = temp;
+        }
+
+        int i = 0;
+        j = 0;
+        char[] iInputChar = content.toCharArray();
+        char[] tempChars = new char[iInputChar.length];
+        for (int x = 0; x < iInputChar.length; x++) {
+            i = (i + 1) % 256;
+            j = (j + iS[i]) % 256;
+            int temp = iS[i];
+            iS[i] = iS[j];
+            iS[j] = temp;
+            int t = (iS[i] + (iS[j] % 256)) % 256;
+            int iY = iS[t];
+            char iCY = (char) iY;
+            tempChars[x] = (char) (iInputChar[x] ^ iCY);
+        }
+
+        String s = new String(tempChars);
+
+        try {
+            return StringUtils.byteToHexStr(s.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+
+    /**
+     * DESC: 华商基金的解密算法
+     *
+     * Created by Jinphy, on 2018/3/8, at 16:50
+     */
+    public static String decryptHSFund(String content) {
+        try {
+            String s = new String(StringUtils.hexStrToByte(content), "UTF-8");
+
+            int[] iS = new int[256];
+            byte[] iK = new byte[256];
+
+            for (int i = 0; i < 256; i++)
+                iS[i] = i;
+
+            int j = 1;
+
+            for (short i = 0; i < 256; i++) {
+                iK[i] = (byte) AES_KEY.charAt((i % AES_KEY.length()));
+            }
+
+            j = 0;
+
+            for (int i = 0; i < 255; i++) {
+                j = (j + iS[i] + iK[i]) % 256;
+                int temp = iS[i];
+                iS[i] = iS[j];
+                iS[j] = temp;
+            }
+
+            int i = 0;
+            j = 0;
+            char[] iInputChar = s.toCharArray();
+            char[] iOutputChar = new char[iInputChar.length];
+            for (int x = 0; x < iInputChar.length; x++) {
+                i = (i + 1) % 256;
+                j = (j + iS[i]) % 256;
+                int temp = iS[i];
+                iS[i] = iS[j];
+                iS[j] = temp;
+                int t = (iS[i] + (iS[j] % 256)) % 256;
+                int iY = iS[t];
+                char iCY = (char) iY;
+                iOutputChar[x] = (char) (iInputChar[x] ^ iCY);
+            }
+
+            return new String(iOutputChar);
+
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        return "";
+    }
 
 }
