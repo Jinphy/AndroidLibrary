@@ -3,6 +3,8 @@ package com.szltech.networklibrary.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.util.Map;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -48,6 +50,23 @@ public class PreferenceUtils {
         ObjectUtils.requireNonNull(key, "key cannot be null!");
         return context.getSharedPreferences(file.get(), Context.MODE_PRIVATE).getString(key, "");
     }
+
+    /**
+     * DESC: 获取指定文件中的所有数据
+     * Created by Jinphy, on 2018/3/8, at 14:29
+     */
+    public static Map<String, ?> getAll(Context context, File file) {
+        return context.getSharedPreferences(file.get(), Context.MODE_PRIVATE).getAll();
+    }
+
+    public static SharedPreferences.Editor editor(Context context, File file) {
+        if (context == null) {
+            return null;
+        }
+        return context.getSharedPreferences(file.get(), Context.MODE_PRIVATE).edit();
+    }
+
+
 
     /**
      * DESC: 枚举：指定数据的保存文件路径

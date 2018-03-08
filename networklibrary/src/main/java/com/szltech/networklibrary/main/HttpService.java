@@ -26,18 +26,22 @@ import rx.Observable;
 public interface HttpService {
 
     // 例如：
-    @GET(Config.Path.queryFundInfo)
+    @GET(Config.Path.Query.queryFundInfo)
     Observable<String> queryFundInfo();
 
 
     /**
      * DESC: 获取系统加密秘钥，不同项目可能路径不一样，可以改变{@link
-     *      com.szltech.networklibrary.main.Config.Path#getSysKey
+     *      com.szltech.networklibrary.main.Config.Path.System#getSysKey
      *  } 的值
      * Created by Jinphy, on 2018/3/8, at 9:08
      */
-    @GET(Config.Path.getSysKey)
+    @GET(Config.Path.System.getSysKey)
     Observable<String> getSysKey();
+
+
+    @GET(Config.Path.Query.marketQueryForChart)
+    Observable<String> marketQueryForChart();
 
 
 }

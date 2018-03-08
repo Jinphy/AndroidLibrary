@@ -1,16 +1,23 @@
 package com.szltech.networklibrary.entifies;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import com.szltech.networklibrary.utils.EncryptUtils;
 import com.szltech.networklibrary.utils.GsonUtils;
 import com.szltech.networklibrary.utils.PreferenceUtils;
 
+import java.util.Map;
+
 /**
+ * 缓存类，如果要限制缓存的大小，那么可以在APP启动时（一般在Application中）
+ * 调用{@link Cache#clear(Context, long...)}
  * Created by Jinphy on 2018/3/8.
  */
 
 public class Cache {
+
+    public static final long DEFAULT_TIMEOUT = 24 * 3600_000;// 一天的缓存超时
 
     /**
      * DESC: 缓存时间
@@ -66,5 +73,34 @@ public class Cache {
         }
         return false;
     }
+
+
+    /**
+     * DESC: 清理过期的缓存
+     *
+     * @param timeouts 可变参数，只取第一个值（不传则默认有效期为一天），表示缓存缓存有效期，默认有效期为一天
+     * Created by Jinphy, on 2018/3/8, at 14:43
+     */
+    public static void clear(Context context, long... timeouts) {
+        if (context == null) {
+            return;
+        }
+        long timeout = DEFAULT_TIMEOUT;
+        if (timeouts.length > 0) {
+            timeout = timeouts[0];
+        }
+        SharedPreferences.Editor editor = PreferenceUtils.editor(context, PreferenceUtils.File.cache);
+        long now = System.currentTimeMillis();
+        Map<String, ?> map = PreferenceUtils.getAll(context, PreferenceUtils.File.cache);
+        for (Map.Entry<String, ?> x : map.entrySet()) {
+            Cache cache = Cache.get(context, x.getKey());
+            if (now - cache.time > timeout) {
+                editor.remove(x.getKey());
+            }
+        }
+        editor.apply();
+    }
+
+
 
 }

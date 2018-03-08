@@ -138,7 +138,7 @@ class Params extends HashMap<String, String> {
         if (ObjectUtils.reference(api.context)) {
             VALUE_APP_VERSION = AppUtils.getAppVersion((Context) api.context.get());
         } else {
-            VALUE_APP_VERSION = "";
+            VALUE_APP_VERSION = "3.0.2";
         }
 
         put(KEY_APP_KEY, VALUE_APP_KEY);

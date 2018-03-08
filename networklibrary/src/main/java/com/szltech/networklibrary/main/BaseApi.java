@@ -31,6 +31,7 @@ import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import rx.Observable;
 import rx.android.BuildConfig;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 
@@ -293,7 +294,7 @@ abstract class BaseApi<T> implements ApiInterface<T>, ApiCallback<T> {
      * DESC: 设置网络请求时使用缓存，默认为不缓存，调用后则缓存，
      *
      *
-     * @param cachePath 设置缓存路径，路径值为接口值，例如：{@link Config.Path#queryFundInfo}
+     * @param cachePath 设置缓存路径，路径值为接口值，例如：{@link Config.Path.Query#queryFundInfo}
      *                  如果设置为空串或者null值则会忽略该设置，所以将不缓存结果
      * Created by Jinphy, on 2017/12/4, at 9:05
      */
