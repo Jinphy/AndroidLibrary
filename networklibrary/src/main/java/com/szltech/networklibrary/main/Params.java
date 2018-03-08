@@ -1,13 +1,12 @@
-package com.szltech.networklibrary;
+package com.szltech.networklibrary.main;
 
+import android.content.Context;
 import android.text.TextUtils;
 
-import com.dl.dlclient.MyApplication;
-import com.dl.dlclient.utils.AnyHelper;
-import com.dl.dlclient.utils.StringUtils;
-import com.wzgiceman.rxretrofitlibrary.retrofit_rx.http.converters.HloveyRC4;
-import com.wzgiceman.rxretrofitlibrary.retrofit_rx.utils.EncryptUtil;
-import com.wzgiceman.rxretrofitlibrary.retrofit_rx.utils.MD5;
+import com.szltech.networklibrary.utils.AppUtils;
+import com.szltech.networklibrary.utils.EncryptUtils;
+import com.szltech.networklibrary.utils.ObjectUtils;
+import com.szltech.networklibrary.utils.StringUtils;
 
 import java.lang.ref.WeakReference;
 import java.net.URLEncoder;
@@ -58,7 +57,7 @@ class Params extends HashMap<String, String> {
 
     public static final String VALUE_APP_KEY = "IX8pBy";
     public static final String VALUE_APP_SECRET = "u9KMNq";
-    public static final String VALUE_APP_VERSION = getAppVersion();
+    public static String VALUE_APP_VERSION;
     public static final String VALUE_MARKET = "g1";
     public static final String VALUE_CHANNEL = "app_android";
     //-------签名参数--------------------------------------------------------------------------------
@@ -76,7 +75,7 @@ class Params extends HashMap<String, String> {
 
     private String sysKey;
 
-    private WeakReference<Base> api;
+    private WeakReference<BaseApi> api;
 
 //
 //    private List<String> signs = new LinkedList<>();
@@ -125,7 +124,7 @@ class Params extends HashMap<String, String> {
      * DESC: 获取一个请求参数的实例
      * Created by Jinphy, on 2017/12/25, at 17:06
      */
-    public static Params newInstance(Base api) {
+    public static Params newInstance(BaseApi api) {
         return new Params(api);
     }
 
@@ -133,8 +132,14 @@ class Params extends HashMap<String, String> {
      * DESC: 创建请求参数，并添加公共参数
      * Created by Jinphy, on 2017/12/25, at 18:37
      */
-    private Params(Base api){
+    private Params(BaseApi api){
         this.api = new WeakReference<>(api);
+
+        if (ObjectUtils.reference(api.context)) {
+            VALUE_APP_VERSION = AppUtils.getAppVersion((Context) api.context.get());
+        } else {
+            VALUE_APP_VERSION = "";
+        }
 
         put(KEY_APP_KEY, VALUE_APP_KEY);
         put(KEY_APP_SECRET, VALUE_APP_SECRET);
@@ -212,7 +217,7 @@ class Params extends HashMap<String, String> {
                 call = doGet(client, request);
                 break;
         }
-        if (AnyHelper.reference(this.api)) {
+        if (ObjectUtils.reference(this.api)) {
             this.api.get().url = request.url().toString()+"?"+toString();
         }
 
@@ -286,7 +291,7 @@ class Params extends HashMap<String, String> {
         // 加密
         for (Entry<String, String> entry : entrySet()) {
             if (needEncryptAES(entry.getKey())) {
-                entry.setValue(HloveyRC4.encrypt(entry.getValue(), AES_KEY));
+                entry.setValue(EncryptUtils.aesEncrypt(entry.getValue(), AES_KEY));
             }
         }
     }
@@ -356,7 +361,7 @@ class Params extends HashMap<String, String> {
         for (Map.Entry<String, String> entry : entrySet()) {
             // 判断key对应的value是否需要加密
             if (needEncryptSysKey(entry.getKey())) {
-                entry.setValue(EncryptUtil.encryptAESAndroid(entry.getValue(), sysKey));
+                entry.setValue(EncryptUtils.aesEncrypt(entry.getValue(), sysKey));
             }
         }
     }
@@ -367,7 +372,7 @@ class Params extends HashMap<String, String> {
      * Created by Jinphy, on 2017/12/25, at 18:45
      */
     private String encryptSign(String signs) {
-        String md5Str = MD5.getMD5Str(signs);
+        String md5Str = EncryptUtils.md5Encrypt(signs);
         // 要生成的sign的字符
         String[] chars = new String[]{"a", "b", "c", "d", "e", "f", "g", "h",
                 "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
@@ -413,28 +418,10 @@ class Params extends HashMap<String, String> {
      * Created by Jinphy, on 2017/12/22, at 11:06
      */
     public final void setSysKey(String sysKey) {
-        AnyHelper.requireNonNull(sysKey, "sysKey cannot be null!");
+        ObjectUtils.requireNonNull(sysKey, "sysKey cannot be null!");
         this.sysKey = sysKey;
     }
 
-    /**
-     * DESC: 获取当前APP的版本， 例如：3.0.3
-     * Created by Jinphy, on 2017/12/25, at 17:26
-     */
-    private static String getAppVersion() {
-        if (MyApplication.app == null) {
-            return "";
-        }
-        try {
-            return MyApplication.app
-                    .getPackageManager()
-                    .getPackageInfo(MyApplication.app.getPackageName(), 0)
-                    .versionName;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "";
-        }
-    }
 
     /**
      * DESC: 判断参数是否需要进行AES加密

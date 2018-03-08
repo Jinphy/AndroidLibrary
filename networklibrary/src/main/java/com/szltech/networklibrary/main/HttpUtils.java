@@ -1,8 +1,8 @@
-package com.szltech.networklibrary;
+package com.szltech.networklibrary.main;
 
 import android.support.annotation.NonNull;
 
-import com.dl.dlclient.utils.AnyHelper;
+import com.szltech.networklibrary.utils.ObjectUtils;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 import com.trello.rxlifecycle.components.support.RxAppCompatDialogFragment;
 import com.trello.rxlifecycle.components.support.RxDialogFragment;
@@ -15,10 +15,10 @@ import com.trello.rxlifecycle.components.support.RxFragmentActivity;
  * Created by Jinphy on 2017/11/22.
  */
 
-public class Api{
+public class HttpUtils {
 
     // 工具类
-    private Api(){}
+    private HttpUtils(){}
 
     //=============创建 common API实例=================================
 
@@ -67,7 +67,7 @@ public class Api{
      * Created by Jinphy, on 2017/12/4, at 8:55
      */
     public static <U> ApiInterface<U> common(RxFragmentActivity activity, @NonNull Class<U> resultClass) {
-        AnyHelper.requireNonNull(resultClass, "resultClass cannot be null!");
+        ObjectUtils.requireNonNull(resultClass, "resultClass cannot be null!");
         return new CommonApi<>(activity, resultClass);
     }
 
@@ -77,7 +77,7 @@ public class Api{
      * Created by Jinphy, on 2017/12/4, at 8:55
      */
     public static <U> ApiInterface<U> common(RxAppCompatActivity activity, @NonNull Class<U> resultClass) {
-        AnyHelper.requireNonNull(resultClass, "resultClass cannot be null!");
+        ObjectUtils.requireNonNull(resultClass, "resultClass cannot be null!");
         return new CommonApi<>(activity, resultClass);
     }
 
@@ -87,7 +87,7 @@ public class Api{
      * Created by Jinphy, on 2017/12/4, at 8:55
      */
     public static <U> ApiInterface<U> common(RxFragment fragment, @NonNull Class<U> resultClass) {
-        AnyHelper.requireNonNull(resultClass, "resultClass cannot be null!");
+        ObjectUtils.requireNonNull(resultClass, "resultClass cannot be null!");
         return new CommonApi<>(fragment, resultClass);
     }
 
@@ -96,7 +96,7 @@ public class Api{
      * Created by Jinphy, on 2017/12/4, at 8:55
      */
     public static <U> ApiInterface<U> common(RxDialogFragment fragment, @NonNull Class<U> resultClass) {
-        AnyHelper.requireNonNull(resultClass, "resultClass cannot be null!");
+        ObjectUtils.requireNonNull(resultClass, "resultClass cannot be null!");
         return new CommonApi<>(fragment, resultClass);
     }
 
@@ -105,7 +105,7 @@ public class Api{
      * Created by Jinphy, on 2017/12/4, at 8:55
      */
     public static <U> ApiInterface<U> common(RxAppCompatDialogFragment fragment, @NonNull Class<U> resultClass) {
-        AnyHelper.requireNonNull(resultClass, "resultClass cannot be null!");
+        ObjectUtils.requireNonNull(resultClass, "resultClass cannot be null!");
         return new CommonApi<>(fragment, resultClass);
     }
 
@@ -266,7 +266,4 @@ public class Api{
         String RESET_JUST_REGISTER = "0"; //注册未开户
         String RESET_HAS_OPENACCO = "1";  //已开户
     }
-
-
-
 }

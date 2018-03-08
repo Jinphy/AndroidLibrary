@@ -1,19 +1,18 @@
-package com.szltech.networklibrary;
+package com.szltech.networklibrary.main;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import com.apkfuns.logutils.LogUtils;
-import com.dl.dlclient.model.Account;
-import com.dl.dlclient.utils.AnyHelper;
-import com.dl.dlclient.utils.AppUtils;
-import com.dl.dlclient.utils.NetUtils;
+import com.szltech.networklibrary.BuildConfig;
+import com.szltech.networklibrary.entifies.BaseResultEntity;
+import com.szltech.networklibrary.utils.GsonUtils;
+import com.szltech.networklibrary.utils.ObjectUtils;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 import com.trello.rxlifecycle.components.support.RxAppCompatDialogFragment;
 import com.trello.rxlifecycle.components.support.RxDialogFragment;
 import com.trello.rxlifecycle.components.support.RxFragment;
 import com.trello.rxlifecycle.components.support.RxFragmentActivity;
-import com.wzgiceman.rxretrofitlibrary.retrofit_rx.Api.BaseResultEntity;
-import com.wzgiceman.rxretrofitlibrary.retrofit_rx.utils.GsonUtils;
 
 import rx.Observable;
 
@@ -26,10 +25,10 @@ import rx.Observable;
  * DESC: 一个通络网络请求接口类，用来执行单条网络请求接口的请求
  *
  * 使用入口：
- * @see Api#common(RxFragment) 或者器重构方法
+ * @see HttpUtils#common(RxFragment) 或者器重构方法
  * Created by Jinphy, on 2017/12/22, at 12:14
  */
-class CommonApi<T> extends Base<T>{
+class CommonApi<T> extends BaseApi<T> {
 
     //=================初始化========================================================================
 
@@ -73,7 +72,7 @@ class CommonApi<T> extends Base<T>{
      * DESC: 私有化构造函数
      * Created by Jinphy, on 2017/12/4, at 9:37
      */
-    CommonApi( RxAppCompatDialogFragment fragment, Class<T> resultClass) {
+    CommonApi(RxAppCompatDialogFragment fragment, Class<T> resultClass) {
         super(fragment,resultClass);
         init();
     }
@@ -95,7 +94,7 @@ class CommonApi<T> extends Base<T>{
         // no-op
     }
 
-    private static final String TAG = "Api";
+    private static final String TAG = "HttpUtils";
 
     /**
      * DESC: 检测请求结果
@@ -117,15 +116,15 @@ class CommonApi<T> extends Base<T>{
             it = (BaseResultEntity) result;
             // 如果结果是BaseResultEntity类型，则为结果设置url
         } else {
-            it = GsonUtils.json2Bean(result.toString(), BaseResultEntity.class);
+            it = GsonUtils.toBean(result.toString(), BaseResultEntity.class);
         }
-        if (!NetUtils.parseData(it)) {
-            if (this.onResultNo != null) {
-                this.onResultNo.call(result);
-            }
-        } else {
+        if (it.ok()) {
             if (this.onResultYes != null) {
                 this.onResultYes.call(result);
+            }
+        } else {
+            if (this.onResultNo != null) {
+                this.onResultNo.call(result);
             }
         }
     }
@@ -133,7 +132,7 @@ class CommonApi<T> extends Base<T>{
     @Override
     public void doOnResult(T result) {
         super.doOnResult(result);
-        if (AppUtils.debug()) {
+        if (BuildConfig.DEBUG) {
             LogUtils.e(
                     "Request network successful:\n\n" +
                             "【   Url    】===>>|| " + url + ",\n\n" +
@@ -144,7 +143,7 @@ class CommonApi<T> extends Base<T>{
 
     @Override
     public <U> ApiInterface<T> api(ApiInterface<U> api) {
-        AnyHelper.throwRuntime("common api cannot invoke this method!");
+        ObjectUtils.throwRuntime("common api cannot invoke this method!");
         return this;
     }
 
@@ -166,7 +165,7 @@ class CommonApi<T> extends Base<T>{
     @Override
     public void execute() {
         executor.execute(()->{
-            if (AnyHelper.reference(context)) {
+            if (ObjectUtils.reference(context)) {
                 Context context = this.context.get();
 
                 // 判断是否满足条件
@@ -199,8 +198,8 @@ class CommonApi<T> extends Base<T>{
      *
      * @param which 指定需要加密的网络请求API，该参数是针对网络合并请求接口的，单条网络请求的接口将会忽略该参数
      *
-     * @see Api#common(RxFragment) 及其重载函数
-     * @see Api#zipper(RxFragment) 及其重载函数
+     * @see HttpUtils#common(RxFragment) 及其重载函数
+     * @see HttpUtils#zipper(RxFragment) 及其重载函数
      *
      * Created by Jinphy, on 2017/12/4, at 8:53
      */
@@ -220,17 +219,17 @@ class CommonApi<T> extends Base<T>{
      *          2、根据获取的sysKey加密需要被加密的参数
      *          3、参数加密后再执行目的的网络请求接口
      *
-     * @param account 当前账号
+     * @param accessToken 当前账号的accessToken
      * @param which 指定需要加密的网络请求API，该参数是针对网络合并请求接口的，单条网络请求的接口将会忽略该参数
      *
-     * @see Api#common(RxFragment) 及其重载函数
-     * @see Api#zipper(RxFragment) 及其重载函数
+     * @see HttpUtils#common(RxFragment) 及其重载函数
+     * @see HttpUtils#zipper(RxFragment) 及其重载函数
      * Created by Jinphy ,on 2017/11/24, at 18:06
      */
     @Override
-    public void executeEncrypted(Account account,int...which) {
-        if (account != null) {
-            getSysKey(account.getAccesstoken(),null,null,
+    public void executeEncrypted(String accessToken,int...which) {
+        if (!TextUtils.isEmpty(accessToken)) {
+            getSysKey(accessToken, null, null,
                     sysKey -> {
                         this.params.setSysKey(sysKey);
                         this.execute();
@@ -250,8 +249,8 @@ class CommonApi<T> extends Base<T>{
      * @param idNo 证件号
      * @param which 指定需要加密的网络请求API，该参数是针对网络合并请求接口的，单条网络请求的接口将会忽略该参数
      *
-     * @see Api#common(RxFragment) 及其重载函数
-     * @see Api#zipper(RxFragment) 及其重载函数
+     * @see HttpUtils#common(RxFragment) 及其重载函数
+     * @see HttpUtils#zipper(RxFragment) 及其重载函数
      * <p>
      * Created by Jinphy ,on 2017/11/24, at 18:13
      */

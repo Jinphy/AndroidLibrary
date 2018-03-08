@@ -1,14 +1,13 @@
-package com.szltech.networklibrary;
+package com.szltech.networklibrary.main;
 
 import android.content.Context;
 import android.support.annotation.CallSuper;
 
 import com.apkfuns.logutils.LogUtils;
-import com.dl.dlclient.model.gsmodel.GSGetsyskey;
-import com.dl.dlclient.networkApi.HttpService;
-import com.dl.dlclient.utils.AnyHelper;
-import com.dl.dlclient.utils.AppUtils;
-import com.dl.dlclient.utils.StringUtils;
+import com.szltech.networklibrary.entifies.SysKey;
+import com.szltech.networklibrary.utils.GsonUtils;
+import com.szltech.networklibrary.utils.ObjectUtils;
+import com.szltech.networklibrary.utils.StringUtils;
 import com.trello.rxlifecycle.android.ActivityEvent;
 import com.trello.rxlifecycle.android.FragmentEvent;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
@@ -16,11 +15,6 @@ import com.trello.rxlifecycle.components.support.RxAppCompatDialogFragment;
 import com.trello.rxlifecycle.components.support.RxDialogFragment;
 import com.trello.rxlifecycle.components.support.RxFragment;
 import com.trello.rxlifecycle.components.support.RxFragmentActivity;
-import com.wzgiceman.rxretrofitlibrary.retrofit_rx.exception.RetryWhenNetworkException;
-import com.wzgiceman.rxretrofitlibrary.retrofit_rx.http.HttpConfig;
-import com.wzgiceman.rxretrofitlibrary.retrofit_rx.http.converters.StringConverterFactory;
-import com.wzgiceman.rxretrofitlibrary.retrofit_rx.http.cookie.CookieInterceptor;
-import com.wzgiceman.rxretrofitlibrary.retrofit_rx.utils.GsonUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
@@ -35,6 +29,7 @@ import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import rx.Observable;
+import rx.android.BuildConfig;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
@@ -43,8 +38,14 @@ import rx.schedulers.Schedulers;
  * DESC: 包可见类
  * Created by Jinphy, on 2017/12/7, at 20:12
  */
-abstract class Base<T> implements ApiInterface<T>, ApiCallback<T> {
+abstract class BaseApi<T> implements ApiInterface<T>, ApiCallback<T> {
     protected static ExecutorService executor = Executors.newCachedThreadPool();
+
+
+    //public static final String BASE_URL = "http://59.37.62.185:8080/DLMiddleware/";//景顺测试环境
+    //public static final String BASE_URL = "https://appstore.igwfmc.com/DLMiddleware/";//景顺测试环境
+    public static final String BASE_URL = "http://wxgame.hsfund.com:9001/DLMiddleware_hs-controller/restful/";//测试环境
+    //    public static final String BASE_URL = "https://apptrade.hsfund.com/DLMiddleware_hs-controller/restful/"; //生产环境
 
     private static OkHttpClient okHttpClient;
 
@@ -53,7 +54,7 @@ abstract class Base<T> implements ApiInterface<T>, ApiCallback<T> {
     //-------------context、activity和fragment---------------------------------------------------------------
     //定义5种是因为Rxlifecycle暂支持5种
     //rx生命周期管理
-    protected WeakReference<Context> context;
+    WeakReference<Context> context;
     protected WeakReference<RxAppCompatActivity> rxAppCompatActivity;
     protected WeakReference<RxFragment> rxFragment;
     protected WeakReference<RxDialogFragment> rxDialogFragment;
@@ -66,7 +67,7 @@ abstract class Base<T> implements ApiInterface<T>, ApiCallback<T> {
     protected boolean cancellable;                      // 是否能取消加载框
     protected boolean showProgress;                     // 是否显示加载框
     protected boolean useCache;                         // 是否需要缓存处理
-    protected String baseUrl= HttpConfig.baseUrl;       // 基础url
+    protected String baseUrl= BASE_URL;                 // 基础url
     protected String cachePath;                         // 缓存路径，为对应接口字符串值，设置useCache为true是生效
     protected int connectionTimeout = 10;               // 超时时间，默认十秒
     protected int cookieNetworkTimeout=60;              // 有网情况下的本地缓存时间默认60秒
@@ -99,35 +100,35 @@ abstract class Base<T> implements ApiInterface<T>, ApiCallback<T> {
     protected String logTag = getClass().getSimpleName();
 
 
-    protected Base(RxAppCompatActivity activity, Class<T> resultClass) {
+    protected BaseApi(RxAppCompatActivity activity, Class<T> resultClass) {
         setBase();
         this.rxAppCompatActivity = new WeakReference<>(activity);
         this.context = new WeakReference<>(activity);
         this.resultClass = resultClass;
     }
 
-    protected Base(RxFragment fragment, Class<T> resultClass) {
+    protected BaseApi(RxFragment fragment, Class<T> resultClass) {
         setBase();
         this.rxFragment = new WeakReference<>(fragment);
         this.context = new WeakReference<>(fragment.getContext());
         this.resultClass = resultClass;
     }
 
-    protected Base( RxDialogFragment fragment, Class<T> resultClass) {
+    protected BaseApi(RxDialogFragment fragment, Class<T> resultClass) {
         setBase();
         this.rxDialogFragment = new WeakReference<>(fragment);
         this.context = new WeakReference<>(fragment.getContext());
         this.resultClass = resultClass;
     }
 
-    protected Base( RxAppCompatDialogFragment fragment, Class<T> resultClass) {
+    protected BaseApi(RxAppCompatDialogFragment fragment, Class<T> resultClass) {
         setBase();
         this.rxAppCompatDialogFragment = new WeakReference<>(fragment);
         this.context = new WeakReference<>(fragment.getContext());
         this.resultClass = resultClass;
     }
 
-    protected Base(RxFragmentActivity activity, Class<T> resultClass) {
+    protected BaseApi(RxFragmentActivity activity, Class<T> resultClass) {
         setBase();
         this.rxFragmentActivity = new WeakReference<>(activity);
         this.context = new WeakReference<>(activity);
@@ -159,16 +160,16 @@ abstract class Base<T> implements ApiInterface<T>, ApiCallback<T> {
      * Created by Jinphy, on 2017/12/22, at 13:17
      */
     protected void getSysKey(String accessToken, String idNo, String idType, OnResultYes<String> onNext) {
-        if (AnyHelper.reference(context)) {
+        if (ObjectUtils.reference(context)) {
             Context context = this.context.get();
             // 获取系统加密秘钥
-            Api.common((RxFragmentActivity) context, GSGetsyskey.class)
-                    .param(Api.Key.ACCESS_TOKEN, accessToken)
-                    .param(Api.Key.ID_NO, idNo)
-                    .param(Api.Key.ID_TYPE, idType)
+            HttpUtils.common((RxFragmentActivity) context, SysKey.class)
+                    .param(HttpUtils.Key.ACCESS_TOKEN, accessToken)
+                    .param(HttpUtils.Key.ID_NO, idNo)
+                    .param(HttpUtils.Key.ID_TYPE, idType)
                     .showProgress()
                     .cancellable()
-                    .client(HttpService::getsyskey)
+                    .client(HttpService::getSysKey)
                     .onResultYes(result -> onNext.call(result.getRetdata().getSyskey()))
                     .execute();
         }
@@ -212,7 +213,7 @@ abstract class Base<T> implements ApiInterface<T>, ApiCallback<T> {
         if (this.onCancel != null) {
             this.onCancel.call();
         }
-        if (AppUtils.debug()) {
+        if (BuildConfig.DEBUG) {
             LogUtils.e("The request has cancel, the corresponding url = " + url);
         }
     }
@@ -223,7 +224,7 @@ abstract class Base<T> implements ApiInterface<T>, ApiCallback<T> {
         if (this.onError != null) {
             this.onError.call(e);
         }
-        if (AppUtils.debug()) {
+        if (BuildConfig.DEBUG) {
             LogUtils.e("There is an error occurred when request url = " + url+"\n Error message: "+e.getMessage());
         }
     }
@@ -281,7 +282,7 @@ abstract class Base<T> implements ApiInterface<T>, ApiCallback<T> {
      */
     @Override
     public ApiInterface<T> baseUrl(@Nonnull String baseUrl) {
-        AnyHelper.requireNonNull(baseUrl,"baseUrl cannot be null!");
+        ObjectUtils.requireNonNull(baseUrl,"baseUrl cannot be null!");
         this.baseUrl = baseUrl;
         this.setBaseUrl = true;
         return this;
@@ -292,7 +293,7 @@ abstract class Base<T> implements ApiInterface<T>, ApiCallback<T> {
      * DESC: 设置网络请求时使用缓存，默认为不缓存，调用后则缓存，
      *
      *
-     * @param cachePath 设置缓存路径，路径值为接口值，例如：{@link HttpConfig.api#addadmire}
+     * @param cachePath 设置缓存路径，路径值为接口值，例如：{@link Config.Path#queryFundInfo}
      *                  如果设置为空串或者null值则会忽略该设置，所以将不缓存结果
      * Created by Jinphy, on 2017/12/4, at 9:05
      */
@@ -403,16 +404,6 @@ abstract class Base<T> implements ApiInterface<T>, ApiCallback<T> {
         this.onResult = listener;
         return this;
     }
-//
-//    /**
-//     * DESC: 设置可观察的网络请求的回调接口
-//     * Created by Jinphy, on 2017/12/4, at 9:19
-//     */
-//    @Override
-//    public ApiInterface<T> onObservable(OnObservableNext<T> listener) {
-//        this.onObservable = listener;
-//        return this;
-//    }
 
     /**
      * DESC: 设置请求成功前的回调
@@ -477,16 +468,18 @@ abstract class Base<T> implements ApiInterface<T>, ApiCallback<T> {
      * Created by Jinphy, on 2017/12/7, at 14:57
      */
     protected OkHttpClient getOkHttpClient() {
-        if (AnyHelper.reference(context)) {
+        if (ObjectUtils.reference(context)) {
             if (okHttpClient == null) {
-                synchronized (Base.class) {
+                synchronized (BaseApi.class) {
                     if (okHttpClient == null) {
                         okHttpClient = new OkHttpClient.Builder().connectTimeout(this.connectionTimeout, TimeUnit.SECONDS).build();
                     }
                 }
             }// end if
 
-            return okHttpClient.newBuilder().addInterceptor(new CookieInterceptor(this.useCache, getUrl())).build();
+            return okHttpClient.newBuilder()
+//                    .addInterceptor(new CacheInterceptor(this.useCache, getUrl()))
+                    .build();
         }// end if
 
         return null;
@@ -503,15 +496,15 @@ abstract class Base<T> implements ApiInterface<T>, ApiCallback<T> {
         /*创建retrofit对象*/
         return new Retrofit.Builder()
                 .client(okHttpClient)
-                .addConverterFactory(StringConverterFactory.create())
+                .addConverterFactory(StringConverterFactory.create(context, url, useCache))
                 // .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                .callFactory(request -> params.doMethod(okHttpClient,request))
+                .callFactory(request -> params.doMethod(okHttpClient, request))
                 .baseUrl(baseUrl)
                 .build();
     }
 
-    private static final String TAG = "Base";
+    private static final String TAG = "BaseApi";
 
     /**
      * DESC: 获取Observable
@@ -522,11 +515,11 @@ abstract class Base<T> implements ApiInterface<T>, ApiCallback<T> {
         if (retrofit == null) {
             return null;
         }
-        AnyHelper.requireNonNull(client, "client 不能为空，该接口在getObservable() 中被调用以获取Observable");
+        ObjectUtils.requireNonNull(client, "client 不能为空，该接口在getObservable() 中被调用以获取Observable");
 
-        Observable<String> originObservable = client.call(retrofit.create(HttpService.class), new HashMap<>())
+        Observable<String> originObservable = client.call(retrofit.create(HttpService.class))
                 /*失败后的retry配置*/
-                .retryWhen(new RetryWhenNetworkException())
+                .retryWhen(RetryTask::make)
                 /*生命周期管理*/
                 // .compose(basePar.getRxAppCompatActivity().bindToLifecycle())
                 .compose(bindUntilEvent())
@@ -539,11 +532,11 @@ abstract class Base<T> implements ApiInterface<T>, ApiCallback<T> {
 
         // 根据指定的resultClass转换请求结果
         Class<T> resultClass = getResultClass();
-        AnyHelper.requireNonNull(resultClass, "resultClass cannot be null!");
+        ObjectUtils.requireNonNull(resultClass, "resultClass cannot be null!");
         if (resultClass == String.class) {
             return originObservable.map(result -> (T) result);
         } else {
-            return originObservable.map(result -> GsonUtils.json2Bean(result, resultClass));
+            return originObservable.map(result -> GsonUtils.toBean(result, resultClass));
         }
     }
 
@@ -578,19 +571,19 @@ abstract class Base<T> implements ApiInterface<T>, ApiCallback<T> {
      * Created by Jinphy, on 2017/12/22, at 13:54
      */
     protected Observable.Transformer  bindUntilEvent(){
-        if(AnyHelper.reference(rxAppCompatActivity)){
+        if(ObjectUtils.reference(rxAppCompatActivity)){
             return rxAppCompatActivity.get().bindUntilEvent(ActivityEvent.DESTROY);
 
-        }else  if(AnyHelper.reference(rxFragment)){
+        }else  if(ObjectUtils.reference(rxFragment)){
             return rxFragment.get().bindUntilEvent(FragmentEvent.DESTROY);
 
-        } else if (AnyHelper.reference(rxDialogFragment)) {
+        } else if (ObjectUtils.reference(rxDialogFragment)) {
             return rxDialogFragment.get().bindUntilEvent(FragmentEvent.DESTROY);
 
-        }else if (AnyHelper.reference(rxAppCompatDialogFragment)) {
+        }else if (ObjectUtils.reference(rxAppCompatDialogFragment)) {
             return rxAppCompatDialogFragment.get().bindUntilEvent(FragmentEvent.DESTROY);
 
-        } else if (AnyHelper.reference(rxFragmentActivity)) {
+        } else if (ObjectUtils.reference(rxFragmentActivity)) {
             return rxFragmentActivity.get().bindUntilEvent(ActivityEvent.DESTROY);
 
         } else {

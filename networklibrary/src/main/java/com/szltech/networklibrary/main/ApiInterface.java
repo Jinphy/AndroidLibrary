@@ -1,6 +1,5 @@
-package com.szltech.networklibrary;
+package com.szltech.networklibrary.main;
 
-import com.dl.dlclient.model.Account;
 import com.trello.rxlifecycle.components.support.RxFragment;
 
 import java.util.Map;
@@ -42,7 +41,7 @@ public interface ApiInterface<U> {
      * DESC: 设置网络请求时使用缓存，默认为不缓存，调用后则缓存，同时要调用{@code cachePath()}方法设置相应的路径
      *       调用该方法可以对指定的API接口{@code cachePath }进行缓存
      * @param cachePath 设置指定的API接口路径
-     * @see com.wzgiceman.rxretrofitlibrary.retrofit_rx.http.HttpConfig
+     * @see Config
      * Created by Jinphy, on 2017/12/4, at 9:05
      */
     ApiInterface<U> useCache(String cachePath);
@@ -166,8 +165,8 @@ public interface ApiInterface<U> {
      *
      * @param which 指定需要加密的网络请求API，该参数是针对网络合并请求接口的，单条网络请求的接口将会忽略该参数
      *
-     * @see Api#common(RxFragment) 及其重载函数
-     * @see Api#zipper(RxFragment) 及其重载函数
+     * @see HttpUtils#common(RxFragment) 及其重载函数
+     * @see HttpUtils#zipper(RxFragment) 及其重载函数
      *
      * Created by Jinphy, on 2017/12/25, at 10:49
      */
@@ -178,15 +177,15 @@ public interface ApiInterface<U> {
      * DESC: 执行网络请求
      *
      *
-     * @param account 当前账号
+     * @param accessToken 当前账号的accessToken
      * @param which 指定需要加密的网络请求API，该参数是针对网络合并请求接口的，单条网络请求的接口将会忽略该参数
      *
-     * @see Api#common(RxFragment) 及其重载函数
-     * @see Api#zipper(RxFragment) 及其重载函数
+     * @see HttpUtils#common(RxFragment) 及其重载函数
+     * @see HttpUtils#zipper(RxFragment) 及其重载函数
      *
      * Created by Jinphy, on 2017/12/25, at 10:49
      */
-    void executeEncrypted(Account account, int... which);
+    void executeEncrypted(String accessToken, int... which);
 
 
     /**
@@ -196,8 +195,8 @@ public interface ApiInterface<U> {
      * @param idNo 证件号
      * @param which 指定需要加密的网络请求API，该参数是针对网络合并请求接口的，单条网络请求的接口将会忽略该参数
      *
-     * @see Api#common(RxFragment) 及其重载函数
-     * @see Api#zipper(RxFragment) 及其重载函数
+     * @see HttpUtils#common(RxFragment) 及其重载函数
+     * @see HttpUtils#zipper(RxFragment) 及其重载函数
      *
      * Created by Jinphy, on 2017/12/25, at 10:49
      */

@@ -1,6 +1,8 @@
-package com.szltech.networklibrary;
+package com.szltech.networklibrary.main;
 
 import java.util.Map;
+
+import rx.Observable;
 
 
 /**
@@ -56,7 +58,7 @@ public interface ApiCallback<T> {
      * Created by Jinphy, on 2017/12/4, at 9:16
      */
     interface Client{
-        Observable<String> call(HttpService service, Map<String, String> params);
+        Observable<String> call(HttpService service);
     }
 
     /**

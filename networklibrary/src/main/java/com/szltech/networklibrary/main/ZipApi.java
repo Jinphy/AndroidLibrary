@@ -1,20 +1,18 @@
-package com.szltech.networklibrary;
+package com.szltech.networklibrary.main;
 
 import android.content.Context;
 import android.support.annotation.IntRange;
 
 import com.apkfuns.logutils.LogUtils;
-import com.dl.dlclient.model.Account;
-import com.dl.dlclient.utils.AnyHelper;
-import com.dl.dlclient.utils.AppUtils;
-import com.dl.dlclient.utils.NetUtils;
+import com.szltech.networklibrary.BuildConfig;
+import com.szltech.networklibrary.entifies.BaseResultEntity;
+import com.szltech.networklibrary.utils.GsonUtils;
+import com.szltech.networklibrary.utils.ObjectUtils;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 import com.trello.rxlifecycle.components.support.RxAppCompatDialogFragment;
 import com.trello.rxlifecycle.components.support.RxDialogFragment;
 import com.trello.rxlifecycle.components.support.RxFragment;
 import com.trello.rxlifecycle.components.support.RxFragmentActivity;
-import com.wzgiceman.rxretrofitlibrary.retrofit_rx.Api.BaseResultEntity;
-import com.wzgiceman.rxretrofitlibrary.retrofit_rx.utils.GsonUtils;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -28,34 +26,34 @@ import rx.Observable;
  *      一个合并网络请求接口类，可同时合并多条网络请求接口，结合 {@link CommonApi}使用
  *
  * 使用入口：
- * @see Api#zipper(RxFragment) 或者其重构方法
+ * @see HttpUtils#zipper(RxFragment) 或者其重构方法
  * Created by Jinphy, on 2017/12/7, at 20:12
  */
-class ZipApi<T> extends Base<T> {
+class ZipApi<T> extends BaseApi<T> {
 
     protected List<CommonApi> apis;
 
-    ZipApi(RxAppCompatActivity rxAppCompatActivity,Class<T> resultClass) {
+    ZipApi(RxAppCompatActivity rxAppCompatActivity, Class<T> resultClass) {
         super(rxAppCompatActivity,resultClass);
         init();
     }
 
-    ZipApi(RxFragment rxFragment,Class<T> resultClass) {
+    ZipApi(RxFragment rxFragment, Class<T> resultClass) {
         super(rxFragment,resultClass);
         init();
     }
 
-    ZipApi(RxDialogFragment rxDialogFragment,Class<T> resultClass) {
+    ZipApi(RxDialogFragment rxDialogFragment, Class<T> resultClass) {
         super(rxDialogFragment,resultClass);
         init();
     }
 
-    ZipApi(RxAppCompatDialogFragment rxAppCompatDialogFragment,Class<T> resultClass) {
+    ZipApi(RxAppCompatDialogFragment rxAppCompatDialogFragment, Class<T> resultClass) {
         super(rxAppCompatDialogFragment,resultClass);
         init();
     }
 
-    ZipApi(RxFragmentActivity rxFragmentActivity,Class<T> resultClass) {
+    ZipApi(RxFragmentActivity rxFragmentActivity, Class<T> resultClass) {
         super(rxFragmentActivity,resultClass);
         init();
     }
@@ -182,7 +180,7 @@ class ZipApi<T> extends Base<T> {
                         (str1, str2, str3, str4, str5, str6) -> (T)new Object[]{str1, str2, str3, str4, str5, str6});
                 break;
             default:
-                AnyHelper.throwRuntime("网络请求压缩太多了！");
+                ObjectUtils.throwRuntime("网络请求压缩太多了！");
                 break;
         }
         // 返回压缩后的Observable
@@ -220,9 +218,9 @@ class ZipApi<T> extends Base<T> {
             if (item instanceof BaseResultEntity) {
                 it = ((BaseResultEntity) item);
             } else {
-                it = GsonUtils.json2Bean(item.toString(), BaseResultEntity.class);
+                it = GsonUtils.toBean(item.toString(), BaseResultEntity.class);
             }
-            if (!NetUtils.parseData(it)) {
+            if (!it.ok()) {
                 results[0] = it;
                 if (this.onResultNo != null) {
                     this.onResultNo.call(result);
@@ -238,7 +236,7 @@ class ZipApi<T> extends Base<T> {
     @Override
     public void doOnResult(T result) {
         super.doOnResult(result);
-        if (AppUtils.debug()) {
+        if (BuildConfig.DEBUG) {
             Object[] results = (Object[]) result;
             int i=0;
             for (Object item : results) {
@@ -286,7 +284,7 @@ class ZipApi<T> extends Base<T> {
      */
     public void execute(){
         executor.execute(()->{
-            if (AnyHelper.reference(context)) {
+            if (ObjectUtils.reference(context)) {
                 Context context = this.context.get();
                 // 检测条件
                 checkCondition();
@@ -315,8 +313,8 @@ class ZipApi<T> extends Base<T> {
      *              注意：不合法的下标将被忽略，所以下标的设置是安全的，另外如果不传该参数则默认加密所有的api.
      *              指定需要加密的网络请求API，该参数是针对网络合并请求接口的，单条网络请求的接口将会忽略该参数
      *
-     * @see Api#common(RxFragment) 及其重载函数
-     * @see Api#zipper(RxFragment) 及其重载函数
+     * @see HttpUtils#common(RxFragment) 及其重载函数
+     * @see HttpUtils#zipper(RxFragment) 及其重载函数
      * Created by Jinphy, on 2017/12/22, at 13:05
      */
     @Override
@@ -336,16 +334,16 @@ class ZipApi<T> extends Base<T> {
      *              注意：不合法的下标将被忽略，所以下标的设置是安全的，另外如果不传该参数则默认加密所有的api.
      *              指定需要加密的网络请求API，该参数是针对网络合并请求接口的，单条网络请求的接口将会忽略该参数
      *]
-     * @param account 当前账号
+     * @param accessToken 当前账号的accessToken
      *
-     * @see Api#common(RxFragment) 及其重载函数
-     * @see Api#zipper(RxFragment) 及其重载函数
+     * @see HttpUtils#common(RxFragment) 及其重载函数
+     * @see HttpUtils#zipper(RxFragment) 及其重载函数
      *
      * Created by Jinphy, on 2017/12/22, at 13:07
      */
     @Override
-    public void executeEncrypted(Account account, int... which) {
-        encryptAndRequest(account.getAccesstoken(),null,null,which);
+    public void executeEncrypted(String accessToken, int... which) {
+        encryptAndRequest(accessToken,null,null,which);
     }
 
     /**
@@ -363,8 +361,8 @@ class ZipApi<T> extends Base<T> {
      * @param idType 证件类型
      * @param idNo 证件号
      *
-     * @see Api#common(RxFragment) 及其重载函数
-     * @see Api#zipper(RxFragment) 及其重载函数
+     * @see HttpUtils#common(RxFragment) 及其重载函数
+     * @see HttpUtils#zipper(RxFragment) 及其重载函数
      * Created by Jinphy, on 2017/12/22, at 13:07
      */
     @Override

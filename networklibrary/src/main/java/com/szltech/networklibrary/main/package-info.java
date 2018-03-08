@@ -1,11 +1,11 @@
-package com.szltech.networklibrary; /**
+package com.szltech.networklibrary.main; /**
  * 包说明：
  *      此包下的所有类文件都与网络请求有关，在平时请求网络时，一般中用到{@link com.dl.dlclient.api.Api} 类，
  * <p>{@code
  *     示例：
  *         1、单条网络请求：
- *          Api.common(activity , GSAccount.class)
- *               .param(Api.Key.$key$,$value$ )
+ *          HttpUtils.common(activity , GSAccount.class)
+ *               .param(HttpUtils.Key.$key$,$value$ )
  *               .showProgress($progress$ )
  *               .cancellable()
  *               .useCache()
@@ -21,7 +21,7 @@ package com.szltech.networklibrary; /**
  *
  *
  *           2、多条网络一起请求:
- *           Api.zipper(this)
+ *           HttpUtils.zipper(this)
  *               .api($api1$ )
  *               .api($api2$ )
  *               .param(CommonApi.Key.$key$, $value$ )
@@ -50,7 +50,7 @@ package com.szltech.networklibrary; /**
  *
  *          5.{@link com.dl.dlclient.api.ApiInterface}:
  *                  网络请求接口，用来设置网络请求的配置、参数，以及请求网络，网络请求要实现该接口，例如{@code CommonApi} 和 {@code ZipApi}都实现了该接口，
- *                  然后由网络请求工厂类{@code Api} 来产生相应功能的api
+ *                  然后由网络请求工厂类{@code HttpUtils} 来产生相应功能的api
  *
  *          6.{@link com.dl.dlclient.api.ApiCallback}:
  *                  网络请求回到接口，该接口管理各种回调，每种不同功能的api类都要实现该接口以执行回调功能
